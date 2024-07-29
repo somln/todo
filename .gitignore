@@ -1,0 +1,11 @@
+# MySQL data files
+db/mysql/data/
+
+# 환경 파일
+.env
+
+# 로그 파일
+*.log
+
+# 프로젝트 설정
+.idea/
