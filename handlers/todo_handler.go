@@ -7,14 +7,39 @@ import (
 	"todo/models"
 )
 
+type CreateTodoInput struct {
+	Content string `json:"content" binding:"required"`
+}
+
+type UpdateTodoContentInput struct {
+	Content string `json:"content" binding:"required"`
+}
+
+type UpdateTodoStatusInput struct {
+	Status string `json:"status" binding:"required"`
+}
+
+func getTodoByID(c *gin.Context, todo *models.Todo) error {
+	if err := db.Db.First(todo, c.Param("todoId")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found"})
+		return err
+	}
+	return nil
+}
+
+func bindJSONAndCheckError(c *gin.Context, input interface{}) error {
+	if err := c.ShouldBindJSON(input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return err
+	}
+	return nil
+}
+
 func CreateTodo(c *gin.Context) {
 
-	var input struct {
-		Content string `json:"content" binding:"required"`
-	}
+	var input CreateTodoInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := bindJSONAndCheckError(c, &input); err != nil {
 		return
 	}
 
@@ -28,10 +53,10 @@ func GetTodo(c *gin.Context) {
 
 	var todo models.Todo
 
-	if err := db.Db.First(&todo, c.Param("todoId")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "해당 todo는 존재하지 않습니다. "})
+	if err := getTodoByID(c, &todo); err != nil {
 		return
 	}
+
 	c.JSON(http.StatusOK, todo)
 }
 
@@ -54,17 +79,14 @@ func UpdateTodoContent(c *gin.Context) {
 
 	var todo models.Todo
 
-	if err := db.Db.First(&todo, c.Param("todoId")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "해당 todo는 존재하지 않습니다. "})
+	if err := getTodoByID(c, &todo); err != nil {
 		return
 	}
 
-	var input struct {
-		Content string `json:"content" binding:"required"`
-	}
+	var input UpdateTodoContentInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := bindJSONAndCheckError(c, &input); err != nil {
+		return
 	}
 
 	db.Db.Model(&todo).Update("Content", input.Content)
@@ -75,17 +97,14 @@ func UpdateTodoStatus(c *gin.Context) {
 
 	var todo models.Todo
 
-	if err := db.Db.First(&todo, c.Param("todoId")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "해당 todo는 존재하지 않습니다. "})
+	if err := getTodoByID(c, &todo); err != nil {
 		return
 	}
 
-	var input struct {
-		Status string `json:"status" binding:"required"`
-	}
+	var input UpdateTodoStatusInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := bindJSONAndCheckError(c, &input); err != nil {
+		return
 	}
 
 	db.Db.Model(&todo).Update("Status", input.Status)
@@ -96,12 +115,10 @@ func DeleteTodo(c *gin.Context) {
 
 	var todo models.Todo
 
-	if err := db.Db.First(&todo, c.Param("todoId")).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "해당 todo는 존재하지 않습니다. "})
+	if err := getTodoByID(c, &todo); err != nil {
 		return
 	}
 
 	db.Db.Delete(&todo)
 	c.JSON(http.StatusNoContent, gin.H{})
-
 }
