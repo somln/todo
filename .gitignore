@@ -1,5 +1,5 @@
 # MySQL data files
-db/mysql/data/
+docker/mysql/data/
 
 # 환경 파일
 .env
