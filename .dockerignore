@@ -1,0 +1,25 @@
+# Git 버전 관리 폴더
+.git
+.gitignore
+
+# IDE 설정 폴더
+.vscode
+.idea
+
+# Node.js 관련
+node_modules
+
+# 빌드 출력물
+build
+dist
+*.log
+
+# Mac 메타데이터
+.DS_Store
+
+# 임시 파일
+*.tmp
+*.swp
+*.temp
+
+docker/mysql/data/

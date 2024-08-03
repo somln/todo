@@ -13,6 +13,22 @@ services:
     ports:
       - "3307:3306"
     volumes:
-    - ./docker/mysql/data:/var/lib/mysql
-    - ./docker/mysql/config:/etc/mysql/conf.d
-    - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/config:/etc/mysql/conf.d
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+
+  todo-app:
+    container_name: todo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: "Asia/Seoul"
