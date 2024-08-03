@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"todo/db"
 	"todo/models"
+	"todo/utils"
 )
 
 type CreateTodoInput struct {
@@ -16,7 +17,7 @@ type UpdateTodoContentInput struct {
 }
 
 type UpdateTodoStatusInput struct {
-	Status string `json:"status" binding:"required"`
+	Status models.TodoStatus `json:"status" binding:"required"`
 }
 
 func getTodoByID(c *gin.Context, todo *models.Todo) error {
@@ -43,7 +44,7 @@ func CreateTodo(c *gin.Context) {
 		return
 	}
 
-	todo := models.Todo{Content: input.Content, Status: "Progress"}
+	todo := models.Todo{Content: input.Content, Status: models.Progress}
 	db.Db.Create(&todo)
 
 	c.JSON(http.StatusCreated, todo.TodoID)
@@ -61,13 +62,18 @@ func GetTodo(c *gin.Context) {
 }
 
 func GetTodos(c *gin.Context) {
-
 	var todos []models.Todo
 
 	status := c.Query("status")
 
 	if status != "" {
-		db.Db.Where(status).Find(&todos)
+		todoStatus := models.TodoStatus(status)
+
+		if !utils.ValidateTodoStatus(c, todoStatus) {
+			return
+		}
+		db.Db.Where("status = ?", todoStatus).Find(&todos)
+
 	} else {
 		db.Db.Find(&todos)
 	}
@@ -104,6 +110,10 @@ func UpdateTodoStatus(c *gin.Context) {
 	var input UpdateTodoStatusInput
 
 	if err := bindJSONAndCheckError(c, &input); err != nil {
+		return
+	}
+
+	if !utils.ValidateTodoStatus(c, input.Status) {
 		return
 	}
 

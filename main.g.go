@@ -14,7 +14,6 @@ func main() {
 
 	r := gin.Default()
 
-	// 라우트 설정
 	r.GET("/todos", handlers.GetTodos)
 	r.GET("/todos/:todoId", handlers.GetTodo)
 	r.POST("/todos", handlers.CreateTodo)
